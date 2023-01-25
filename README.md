@@ -12,4 +12,6 @@ there are some cpp projections :
 - json parser 
 - high precsion algorithmn
 - linux/cpp
+- GoogleTest
+- SDL
 - and so on.
