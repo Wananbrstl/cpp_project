@@ -129,4 +129,154 @@ add_executable(test_demo test_sum.cpp ../src/sum.cpp)
 target_link_library(test_demo ${GTEST_BOTH_LIBRARIES} pthread)
 ```
 
-## Google Mock的使用
+## Google Test模块的使用
+
+### TEST（普通）宏
+
+### TEST_F（夹具）宏
+
+### TEST_P（带参数）宏
+
+## Google Mock模块的使用
+
+当我们测试一些组件/类的时候，可能会依赖很多复杂的依赖，这个时候，我们可以考虑使用Mock（打桩）模块来进行测试。
+
+下面简单的说说打桩在白盒测试中的重要性：
+
+1、比如银行业务，需要测试业务模块。此时，不可能去操作真实的数据库，并且搭建新的数据库可能比较复杂或者耗时。那么就可以用gmock将数据库接口地方打桩，来模拟数据库操作。
+
+2、比如要测试A模块，必过A模块需要调用B模块的函数。如果B模块还没有实现，此时，就可以用gmock将B模块的某些接口打桩。这样就可以让A模块的测试继续进行下去。
+
+3、比如网关设备，在用gtest测试device模块的时候，必须有真实的设备才能让测试进行下去。如果用gmock模拟一套sdk接口，那么无需真实的设备也能让测试进行下去。（本条仅限公司内部阅读）
+
+
+### 例子
+
+Fake、Mock、Stub
+
+- Fake对象有具体的实现，但采取一些捷径，比如用内存替代真实的数据库读取
+- Stub对象没有具体的实现，只是返回提前准备好的数据
+- Mock对象和Stub类似，只是在测试中需要调用时，针对某种输入指定期望的行为，Mock和Stub的区别是，Mock除了返回数据还可以指定期望以验证行为。
+
+### 一个乌龟例子
+
+一个纯虚类
+```c++
+class Turtle {
+	...
+	virtual ~Turtle() {};
+	virtual void PenUp() = 0;
+	virtual void PenDown() = 0;
+	virtual void Forward(int distance) = 0;
+	virtual void Turn(int degrees) = 0;
+	virtual void GoTo(int x, int y) = 0;
+	virtual int GetX() const = 0;
+	virtual int GetY() const = 0;
+};
+```
+
+MOCK方法定义
+```c++
+#include "gmock/gmock.h"
+
+class MockTurtle : public Turtle {
+public:
+	...
+	MOCK_METHOD(void, PenUp, (), (override));
+	MOCK_METHOD(void, PenDown, (), (override));
+	MOCK_METHOD(void, Forward, (int distance), (override));
+	MOCK_METHOD(void, Turn, (int degrees), (override));
+	MOCK_METHOD(void, GoTo, (int x, int y), (override));
+	MOCK_METHOD(int, GetX, (), (const, override));
+	MOCK_METHOD(int, GetY, (), (const, override));
+};
+```
+
+创建Mock类的步骤：
+
+1. MockTutle继承Tutle
+2. 找到Tutle的一个虚函数
+3. 在public的部分，写一个MOCK_METHOD()
+4. 将虚函数的函数签名复制进MOCK_METHOD()中，加两个逗号：
+5. 一个在返回类型和函数名之间，另一个在函数名和参数列表之间
+
+例如：void PenDown() 有三部分：void、PenDown、和()，这三部分就是MOCK_METHOD的前三个参数
+
+如果要模拟const方法，添加一个包含const的第四个参数，必须到括号建议添加override关键字。所以对于const方法，第四个参数变为（const, override），对于非const方法，第四个参数变为override。这不是强制性的。重复步骤直至完成要模拟的所有虚拟函数在测试中使用Mock
+
+### 在测试中使用Mock的步骤
+
+1. 从testing名称空间导入gmock.h的函数名(每个文件只需要执行一次)
+2. 创建一些Mock对象
+3. 指定对它们的期望(方法将被调用多少次? 带有什么参数? 每次应该做什么? 返回什么值 等等)
+4. 使用Mock对象；可以使用googletest断言检查结果。如果mock函数的调用超出预期或参数错误，将会立即收到错误信息。
+5. 当Mock对象被销毁时，gmock自动检查对模拟的所有期望是否得到满足
+
+```c++
+#include "path/to/mock-turtle.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+
+using ::testing::AtLeast;                         	// #1
+
+TEST(PainterTest, CanDrawSomething) {
+	MockTurtle turtle;                              // #2
+	EXPECT_CALL(turtle, PenDown())                  // #3
+		.Times(AtLeast(1));
+
+	Painter painter(&turtle);                       // #4
+
+	EXPECT_TRUE(painter.DrawCircle(0, 0, 10));      // #5
+}
+```
+在这个例子中,我们期望tutle的PenDown()至少被调用一次。如果在tutle对象被销毁时,PenDown()还没有被调用或者调用两次以上，测试会失败。
+
+### 指定期望
+
+EXCEPT_CALL(指定期望)是使用Google Mock的核心。EXCEPT_CALL的作用是两方面的：
+
+1. 告诉这个Mock（假）方法如何模拟原始方法：
+
+我们在EXPECT_CALL中告诉Google Mock，某个对象的某个方法第一次被调用时，会修改某个参数，会返回某个值，第二次调用时， 会修改某个参数，会返回某个值......
+
+2. 验证被调用的情况
+
+我们在EXPECT_CALL中告诉Google Mock，某个对象的某个方法总共会被调用N次（或大于N次，小于N次）。如果
+
+最终次数不符合预期，会导致测试失败。
+
+#### 基本语法
+
+```c++
+EXPECT_CALL(mock_object, method(matchers))
+	.Times(cardinality)
+	.WillOnce(action)
+	.WillRepeatedly(action);
+```
+mock_object是对象
+method(matchers)用于匹配相应的函数调用
+cardinality指定基数(被调用次数情况)
+action指定被调用时的行为
+
+#### 例子
+```c++
+using ::testing::Return;
+...
+EXPECT_CALL(turtle, GetX())
+	.Times(5)
+	.WillOnce(Return(100))
+	.WillOnce(Return(150))
+	.WillRepeatedly(Return(200));
+```
+
+这个EXPECT_CALL()指定的期望是：在turtle这个Mock对象销毁之前，turtle的getX()函数会被调用五次。第一次返回100，第二次返回150，第三次及以后都返回200。指定期望后， 5次对getX的调用会有这些行为。但如果最终调用次数不为5次，则测试失败。
+
+#### 怎么调用
+```c++
+using ::testing::_;
+using ::testing::Ge;
+// 只与Forward(100)匹配
+EXPECT_CALL(turtle, Forward(100));
+// 与GoTo(x,y)匹配, 只要x>=50
+EXPECT_CALL(turtle, GoTo(Ge(50), _));
+```

@@ -1,3 +1,4 @@
+#include "gtest/gtest.h"
 #include <gtest/gtest.h>
 #include "sum.h"
 
@@ -13,3 +14,6 @@ TEST(sum_test, f) {
     EXPECT_NE(12110, sum(12000, 111));
     EXPECT_NE(1, sum(-2, 8));
 }
+
+TEST_P(test_suite_name, test_name)
+
