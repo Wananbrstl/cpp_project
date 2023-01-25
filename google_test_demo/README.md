@@ -86,3 +86,47 @@ EXPECT_EQ(2, sum(1, 1)) << "1+1=2"; // 可以配合输出流
         - 类来模拟复杂的逻辑行为。（模拟出依赖）
         - 调用哪些接口，调用的次数、调用顺序、参数、返回值。（核心）
         - 具体的实现方式。
+
+## CMake与GoogleTest
+
+文件结构
+
+```
+.
+├── CMakeLists.txt
+├── bin
+├── include
+│   └── sum.h
+├── src
+│   └── sum.cpp
+├── test
+│   ├── CMakeLists.txt
+│   └── test_sum.cpp
+```
+
+```cmake
+./CMakeLists.txt
+cmake_minimum_required(VERSION 3.10)
+project(sample) 
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall")
+
+enable_testing()
+add_subdirectoires(test)
+```
+
+
+```cmake
+./test/CMakeLists.txt
+cmake_minimum_required(VERSION 3.10)
+find_package(GTest REQUIRED)
+
+include_directoires(../include/)
+include_directoires(${GTEST_INCLUDE_DIRS})
+
+add_executable(test_demo test_sum.cpp ../src/sum.cpp)
+
+target_link_library(test_demo ${GTEST_BOTH_LIBRARIES} pthread)
+```
+
+## Google Mock的使用

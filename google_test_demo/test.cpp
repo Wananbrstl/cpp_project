@@ -2,10 +2,7 @@
 #include "function.h"
 #include <gtest/gtest.h>
 
-
-
-
-namespace lbn{
+namespace {
 TEST(DeleteElem, Position) {
     std::vector<int> nums{1, 2, 0, 0, 2};
     std::vector<int> nums_expect{1,2,2,0,2};
