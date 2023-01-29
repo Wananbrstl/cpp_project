@@ -1,1 +1,0 @@
-/usr/bin/c++  -Wall -std=c++17   CMakeFiles/test_sum.dir/test_sum.cpp.o CMakeFiles/test_sum.dir/__/src/sum.cpp.o  -o test_sum  /usr/local/lib/libgtest.a /usr/local/lib/libgtest_main.a /usr/local/lib/libgtest.a -lpthread 

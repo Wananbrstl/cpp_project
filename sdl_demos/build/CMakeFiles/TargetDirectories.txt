@@ -1,3 +1,0 @@
-/home/lbn/cpp_project/sdl_demos/build/CMakeFiles/rebuild_cache.dir
-/home/lbn/cpp_project/sdl_demos/build/CMakeFiles/edit_cache.dir
-/home/lbn/cpp_project/sdl_demos/build/CMakeFiles/main.dir

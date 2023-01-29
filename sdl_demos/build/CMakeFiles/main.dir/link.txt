@@ -1,1 +1,0 @@
-/usr/bin/c++  -std=c++11 -Wall   CMakeFiles/main.dir/src/demo01.cpp.o  -o main 

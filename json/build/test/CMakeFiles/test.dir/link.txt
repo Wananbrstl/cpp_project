@@ -1,1 +1,0 @@
-/usr/bin/c++   -g -std=c++11 -Wall   CMakeFiles/test.dir/test.cpp.o CMakeFiles/test.dir/__/src/lbn_json.cpp.o  -o test 
