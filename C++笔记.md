@@ -1010,3 +1010,107 @@ _attribute__((enable_if(age > 0 && age < 120, "error age")))
 (https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Function-Attributes.html)
 
 (https://www.jianshu.com/p/29eb7b5c8b2d)
+
+# extern "C" 和 extern关键字
+
+## `extern "C"`的作用
+
+- 被`extern`限定的函数或变量是`extern`类型的
+- 被`extern "C"'修饰的变量和函数是按照C语言方法编译和连接的
+
+`extern "C"`的作用是让C++编译器将`extern "C"`声明的代码当作C语言代码处理，开源避免C++因符号修饰导致代码不能和C语言库中的符号进行链接问题。
+
+## `extern "C"`使用方法
+
+```c
+#ifdefine __cplusplus
+extern "C" {
+#endif
+
+void *memset(void* , int, size_t);
+#ifdef __cplusplus
+}
+#endif
+```
+
+## `extern`关键字的作用
+
+使用关键字`extern`，可以在一个文件中引用另一个文件中的变量或者函数。
+
+### 一 引用同一个文件的变量
+
+```
+#include <stdio.h>
+
+int func();
+
+int main() {
+	func(); // 1
+	printf("%d", num);
+	return 0;
+}
+
+int num = 3; 
+
+int func() {
+	printf("%d\n", num);
+}
+```
+
+按照这个声明顺序的话，在`main`函数中的`num`找不到定义，这个时候我们可以加上关键字`extern`会告诉编译器这个变量后面会有。
+
+修改`main`函数中的`extern int num;`则不会报错。
+
+### 二 引用另外一个文件中的变量
+
+main.c
+```c
+#include <stdio.h>
+
+int main() {
+	extern int num;
+	printf("%d", num);
+	return 0;
+}
+```
+b.c
+```c
+#include <stdio.h>
+
+int num = 5;
+void func() {
+	printf("func in a.c");
+}
+```
+
+> 其实，我们可以通过`include`关键字包含变量和方法的方式去解决这个问题，但是如果这样的话，所有的变量和方法都暴漏，不安全。
+
+### 三 引用另外一个文件中的函数
+
+main.c
+```c
+#include <stdio.h>
+
+int main() {
+	extern void func();
+	func();
+	return 0;
+}
+```
+
+b.c
+```c
+const int num = 5;
+void func() {
+	printf("func is b.c");
+}
+```
+
+> 这里main函数中引用了b.c中的函数func。因为所有的函数都是全局的，所以对函数的extern用法和对全局变量的修饰基本相同，需要注意的就是，需要指明返回值的类型和参数。
+## Reference
+
+(https://github.com/huihut/interview#cc)
+
+(https://blog.csdn.net/xingjiarong/article/details/47656339)
+
+(https://blog.csdn.net/xingjiarong/article/details/47656339)
