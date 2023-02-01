@@ -917,3 +917,96 @@ int main(){
 
 [C/C++ 中 volatile 关键字详解 | 菜鸟教程 (runoob.com)](https://www.runoob.com/w3cnote/c-volatile-keyword.html)
 
+# Attribute的使用
+
+**attribute** 是GUN C中的一个特色，attribute的主要作用是**设置属性**，包括：
+1. 函数属性(Function Attribute)
+2. 变量属性(Variable Attribute)
+3. 类型属性(Type Attribute)
+
+> 使用和编译器环境有关。
+## 函数属性（Function Attribute）
+## 变量属性（Variable Attribute）
+## 类型属性（Type Attribute）
+
+## 使用的格式
+```c++
+__attribute__(xxx)
+```
+其中xxx是attribute的参数
+
+## 常见的用法
+
+### 成员对齐aligned
+`__attribute((aligned(n)))`，表示让所作用的结构成员对齐在`n`字节自然边界上，如果长度大于`n`，则按照最大成员的长度来对齐。
+
+如果不适用aligned：
+```c++
+typedef struct {
+	char member1;	// 1
+	int member2;	// 4
+	short member3; 	// 2
+}Family;		// total 12 Byte
+```
+
+修改对齐字节为1
+
+```c++
+typedef struct {
+	char member1;	// 1
+	int member2;	// 4
+	short member3; 	// 2
+}__attribute__((aligned(1))) Family; //total 12 Byte cause 1 < 4, aligned by 4
+```
+
+修改对齐字节为8
+
+```c++
+typedef struct {
+	char member1;	// 1
+	int member2;	// 4
+	short member3; 	// 2
+}__attribute__((aligned(8))) Family; //total 16
+```
+
+### 结构体对齐packed
+
+使用方法
+
+```c++
+typedef struct {
+	char member1;	// 1
+	int member2;	// 4
+	short member3; 	// 2
+}__attribute__((packed(8))) Family; // 12 => 16
+```
+
+### main之前/exit前执行的constructor/destructor
+
+```c++
+__attribute__((constructor))
+void startUp()  {
+	printf("execute before main\n");
+}
+
+__attribute__((destructor))
+void tearDown() {
+	printf("execute before exit\n");
+}
+```
+
+### 检查参数合法化`enable_if`
+```c++
+void printAge(int age)
+_attribute__((enable_if(age > 0 && age < 120, "error age")))
+{
+	printf("I'm %d years old\n", age);
+}
+```
+如果`age`不在范围里面就会报错。
+
+## Reference
+
+(https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Function-Attributes.html)
+
+(https://www.jianshu.com/p/29eb7b5c8b2d)
