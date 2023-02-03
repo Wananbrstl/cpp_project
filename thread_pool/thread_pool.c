@@ -1,10 +1,10 @@
+//BUG: not wor
 #include <stdio.h>
 #include <pthread.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <unistd.h>
-
 struct Task;
 struct Worker;
 struct threadPool;
@@ -67,6 +67,7 @@ void* thread_task_cycle(void* arg) {
         
         printf("remove the task!\n");
         struct Task* task = worker->thread_pool->taskQ;
+        printf("remove the task");
         LINK_REMOTE(task, worker->thread_pool->taskQ);
         
         pthread_mutex_unlock(&worker->thread_pool->mtx);
@@ -109,7 +110,7 @@ void task_push(struct threadPool* thrdpool, struct Task* node){
     pthread_mutex_unlock(&thrdpool->mtx);
 }
 
-void task1() {
+void task1(void* argc) {
     while(1) {
         printf("this is task1\n");
         usleep(100);
@@ -141,12 +142,8 @@ int main (int argc, char *argv[])
     thread_pool_startup(thrd_pool, 4);
     task_push(thrd_pool, t1);
     task_push(thrd_pool, t2);
-
-    struct Task* taskQ = thrd_pool->taskQ;
-    while(taskQ!=NULL) {
-        printf("has a task!\n");
-        taskQ = taskQ->next;
-    }
+    
+    printf("start work!\n");
     while(1);
     return 0;
 }
