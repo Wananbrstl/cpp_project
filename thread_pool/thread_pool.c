@@ -58,12 +58,14 @@ struct Worker {
 //NOTE: every worker thread run
 void* thread_task_cycle(void* arg) {
     struct Worker* worker = (struct Worker*)arg;
-    while(worker->shutdown) {
+    while(1) {
         pthread_mutex_lock(&worker->thread_pool->mtx);
+        printf("I'm waitting!\n");
         while(worker->thread_pool->taskQ == NULL) {
             pthread_cond_wait(&worker->thread_pool->cond, &worker->thread_pool->mtx);
         }
         
+        printf("remove the task!\n");
         struct Task* task = worker->thread_pool->taskQ;
         LINK_REMOTE(task, worker->thread_pool->taskQ);
         
@@ -90,11 +92,10 @@ int thread_pool_startup(struct threadPool* pool, int num) {
         //TODO: memset的作用？
         memset(worker, 0, sizeof(struct Worker));
         pthread_create(&worker->id, NULL, thread_task_cycle, worker);
-        printf("create thread[%ld]!\n", worker->id);
         //TODO: 是否应该加锁?
         LINK_ADD(worker, pool->workerQ);
         //TODO: usleep的作用?
-        // usleep(1); // chirden first
+        printf("create thread[%ld]!\n", worker->id);
     }
     return 1;
 }
@@ -104,6 +105,7 @@ void task_push(struct threadPool* thrdpool, struct Task* node){
     pthread_mutex_lock(&thrdpool->mtx);
     LINK_ADD(node, thrdpool->taskQ);
     pthread_cond_signal(&thrdpool->cond);
+    printf("notify!\n");
     pthread_mutex_unlock(&thrdpool->mtx);
 }
 
@@ -125,6 +127,8 @@ int main (int argc, char *argv[])
 {
     int num = 2;
     struct threadPool* thrd_pool = (struct threadPool*)malloc(sizeof(struct threadPool));
+    pthread_cond_init(&thrd_pool->cond, NULL);
+    pthread_mutex_init(&thrd_pool->mtx, NULL);
 
     struct Task* t1 = (struct Task*)malloc(sizeof(struct Task));
     t1->func = task1;
@@ -137,6 +141,12 @@ int main (int argc, char *argv[])
     thread_pool_startup(thrd_pool, 4);
     task_push(thrd_pool, t1);
     task_push(thrd_pool, t2);
+
+    struct Task* taskQ = thrd_pool->taskQ;
+    while(taskQ!=NULL) {
+        printf("has a task!\n");
+        taskQ = taskQ->next;
+    }
     while(1);
     return 0;
 }
