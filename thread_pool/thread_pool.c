@@ -131,17 +131,17 @@ int main (int argc, char *argv[])
     pthread_cond_init(&thrd_pool->cond, NULL);
     pthread_mutex_init(&thrd_pool->mtx, NULL);
 
-    struct Task* t1 = (struct Task*)malloc(sizeof(struct Task));
-    t1->func = task1;
-    t1->arg = NULL;
+    struct Task t1, t2;
+    t1.func = task1;
+    t1.arg = NULL;
 
-    struct Task* t2 = (struct Task*)malloc(sizeof(struct Task));
-    t2->func = task2;
-    t2->arg = &num;
+
+    t2.func = task2;
+    t2.arg = &num;
 
     thread_pool_startup(thrd_pool, 4);
-    task_push(thrd_pool, t1);
-    task_push(thrd_pool, t2);
+    task_push(thrd_pool, &t1);
+    task_push(thrd_pool, &t2);
     
     printf("start work!\n");
     while(1);
