@@ -1114,3 +1114,201 @@ void func() {
 (https://blog.csdn.net/xingjiarong/article/details/47656339)
 
 (https://blog.csdn.net/xingjiarong/article/details/47656339)
+
+# 进程间通信
+
+## 可用的方式
+
+- 信号 (signal)
+- 信号量 (semget)
+- 共享内存 (shmget)
+- 消息队列 (msgget)
+- 管道 
+	- 匿名管道
+	- FIFO有名
+
+### 匿名管道 Pipe
+- 父子进程通信
+- 一种经典的IPC方式
+- 基于进程的缓冲器
+- 必须和fork()配合
+- ![image](https://user-images.githubusercontent.com/72334909/217199102-e176aa5c-d842-4e10-a280-e2456e31038a.png)
+- 管道的本质是利用了内核的缓冲区
+- 管道的原理 内核使用环形队列，借助缓冲区4k的空间实现了**单项流动**
+
+#### 使用
+
+```c++
+#include <unistd.h>
+int pipe(int fd[2]);
+a 失败返回0 
+b 成功返回1
+```
+
+#### 例子
+```c++
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main(){
+	int fd[2];
+	int ret = pipe(fd);
+	if(ret == -1) { 
+		perror("pipe error!");
+		exit(1);
+	}
+	pid = fork();
+	if(pid == -1) {
+		perror("fork");
+		exit(1);
+	} else if(pid == 0) { // 子进程 
+		close(fd[1]);
+		char buf[1024];
+		printf("child = %d \n", getpid());
+		ret = read(fd[0], buf, sizeof(buf));
+		write(STDOUT_FILEND, buf, ret);
+	} else { // 父进程
+		sleep(1);
+		close(fd[0]);
+		printf("parent is %d\n", getpid());
+		write(fd[1], "hello world\m");
+		wait(NULL); // 回收子进程， 避免僵尸进程
+	}
+	return 0;
+	printf("done!\n");
+}
+```
+
+### 优缺点
+
+- 优点：常用、简单
+- 缺点：
+	- 半双工，数据只能单方向流动
+	- 只能用于父子进程
+	- 缓冲区是有限的，一页大小4k
+	- 没有名称
+	- 数据不能重复读取
+
+#### 非阻塞管道 TODO
+### 有名管道
+- 解决非血缘进程间通信
+	- 提供了一个路径名（也是一种管道，知道路径名就行）与管道关联
+	- 以文件的形式存在于文件系统中
+
+#### 原型
+
+```c++
+int mkfifo(const char*, mode_t mode);
+```
+
+#### 例子(注意异常检测)
+
+```c++
+// 创建管道
+#include <stdio.h>
+#include <sys/stat.h> // STAT文件相关
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define P_FIFO "/tmp/p_fifo"
+
+int main() {
+	char cache[100];
+	int fd;
+	memset(cachce, 0, sizeof(cache));
+	if(access(P_FIFO, F_OK) == 0) { // 文件存在
+		execlp("rm", "-f", P_FIFO, NULL); /*删除*/
+		printf("success"!\n);
+	}
+	if(mkfifo(P_FIFO, 0777) < 0 ) {
+		printf("create fifo failed!\n");
+	}
+	fd = open(P_FIFO, O_RDONLY | O_NOBLOCK); 
+	while(1) {
+		memset(cache, 0, sizeof(cache));
+		if(read(P_FIFO, 100) == 0) {
+			printf(“no data!\n");
+		}else {
+			printf("get data : %s\n", cache);
+		}
+	}
+	close(fd);
+	return 0;
+}
+
+// 写数据
+#include <stdio.h>
+#include <fntl.h>
+#define P_FIFO "/tmp/p_fifo"
+
+int main(int argc, char** argv) {
+	if(argc != 2) {
+		printf("please input the write data!\n");
+		exit(1);
+	}
+	int fd = open(P_FIFO, O_WRONLY | O_NOBLOCK);
+	if(fd == -1) {
+		printf("open failed!\n");
+		return 0;
+	} 
+	write(fd, argv[1], 100);
+	close(fd);
+	return 0;
+}
+```
+
+### 内存映射mmp
+
+```c++
+#include <sys/mmp>
+void* mmp(void*start, size_t length, int prot, int flags, int fd, off_t offset);
+- prot  
+	- PROT_READ 内存段可读
+	- PROT_WRITE 内存段可写
+- flasg 
+	- MAP_SHARED
+	- MAP_PRIVATE
+	- MAP_FIXED
+int mummap(void* start, size_t length);
+```
+
+#### 例子
+
+```c++
+#include <sys/mman.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define GiB (1024LL * 1024 * 1024)
+
+int main() {
+	void* p = mmap(NULL, 3*GiB, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	if(p == MAP_FAILED) 
+		printf("mmap failed!\n");
+	else 
+		printf("mmap success!\n");
+		
+	*(int *)((u_int8_t*)p + 1 * GiB) = 114;
+	*(int *)((u_int8_t*)p + 2 * GiB) = 115;
+	
+	printf)("read = %d\n", *(int*)((u_int8_T*)p + 2 * GiB));
+	return 0;
+}  
+```
+
+#### 优缺点
+优点：
+- 跨过了页缓存、减少了数据的拷贝，减少了磁盘的读写
+- 提供进程共享内存与互相通信的方式
+- 存在数据丢失的风险， msync强制刷新到磁盘
+缺点：
+- 存在内存浪费，实际会用到页的大小
+- 页面创建、销毁开销大
+- 缺页的开销
+- 
+#### 文件非阻塞
+TODO
+- fcntl 
+- lseek
+- dup2
