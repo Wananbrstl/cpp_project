@@ -1,5 +1,6 @@
 /* 打印的重要性!!!! */
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <bits/stdc++.h>
 #include <cassert>
@@ -482,38 +483,33 @@ int getCrossPointCL(const Circle& circle, const Line& line, Point& out_pt1, Poin
     }
     return 0;
 }
-//
-// int getCrossPointCC(const Circle& circle1, const Circle& circle2, Point& p1, Point& p2) {
-//     int num = ccw(circle1, circle2);
-//     if(num == 0) {
-//         return 0;
-//     }
-// }
 
-Circle circle;
-Line query_line;
+inline Point polar(double d, double theta) {
+    return Point(d*cos(theta), d*sin(theta));
+}
+
+inline double arg(const Point& pt) {
+    return atan2(pt.y, pt.x);
+}
+/*  get the cross point of two circles */
+void getCrossPointCC(const Circle& circle1, const Circle& circle2, Point& p1, Point& p2) {
+    double d = abs(circle1.origin-circle2.origin);
+    double ang = acos((circle1.r*circle1.r + d*d - circle2.r*circle2.r)/(2.0*circle1.r*d));
+    double t = arg(circle2.origin - circle1.origin);
+    if(isnan(d)) printf("d is not a number\n");
+    if(isnan(ang)) printf("ang is not a number\n");
+    if(isnan(t)) printf("t is not a number\n");
+    p1 = circle1.origin+polar(circle1.r, t + ang);
+    p2 = circle1.origin+polar(circle1.r, t - ang);
+}
+
+Circle c1, c2;
 Point p1, p2;
 int main(){
-    int N;
-    scanf("%lf%lf%lf", &circle.origin.x, &circle.origin.y, &circle.r);
-    scanf("%d", &N);
-    for(int i = 0; i < N; ++i ){
-        scanf("%lf%lf%lf%lf", 
-            &query_line.pt[0].x, &query_line.pt[0].y, 
-            &query_line.pt[1].x, &query_line.pt[1].y);
-        int n = getCrossPointCL(circle, query_line, p1, p2);
-        switch (n) {
-            case 1: 
-                printf("%.10lf %.10lf %.10lf %.10lf\n", p1.x, p1.y, p1.x, p1.y);
-                break;
-            case 2:
-                if(p2 < p1) swap(p1, p2);
-                printf("%.10lf %.10lf %.10lf %.10lf\n", p1.x, p1.y, p2.x, p2.y);
-                break;
-            default:
-                break;
-        }
-    }
-    printf("good!\n");
+    scanf("%lf %lf %lf", &c1.origin.x, &c1.origin.y, &c1.r);
+    scanf("%lf %lf %lf", &c2.origin.x, &c2.origin.y, &c2.r);
+    getCrossPointCC(c1, c2, p1, p2);
+    if(p2 < p1) swap(p1, p2);
+    printf("%.10lf %.10lf %.10lf %.10lf\n", p1.x, p1.y, p2.x, p2.y);
     return 0;
 }
