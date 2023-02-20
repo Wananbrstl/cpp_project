@@ -491,6 +491,7 @@ inline Point polar(double d, double theta) {
 inline double arg(const Point& pt) {
     return atan2(pt.y, pt.x);
 }
+
 /*  get the cross point of two circles */
 void getCrossPointCC(const Circle& circle1, const Circle& circle2, Point& p1, Point& p2) {
     double d = abs(circle1.origin-circle2.origin);
