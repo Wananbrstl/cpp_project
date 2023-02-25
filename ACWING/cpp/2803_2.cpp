@@ -87,6 +87,9 @@ bool on_right(Line &a, Line &b, Line &c) //判断 b 和 c 的交点是否在 a �
 double half_plane_intersection() //求半平面交
 {
     sort(line, line + cnt, cmp); //将所有直线按照角度从小到大排序
+    for(int i = 0; i < cnt; ++i) {
+        printf("%lf %lf\n", line[i].st.x, line[i].st.y);
+    }
     int hh = 0, tt = -1;
     for(int i = 0; i < cnt; i++)
     {
@@ -99,11 +102,16 @@ double half_plane_intersection() //求半平面交
     while(hh + 1 <= tt && on_right(line[q[tt]], line[q[hh]], line[q[hh + 1]])) hh++; //用队尾更新队头
 
     q[++tt] = q[hh]; //将队头重复加入队尾
+    printf("hh = %d, tt = %d\n", hh, tt);
     int k = 0;
     //求出半平面交上的所有顶点
     for(int i = hh; i < tt; i++){
         res[k++] = get_line_intersection(line[q[i]], line[q[i + 1]]);
-        printf("intersection point : (%lf, %lf)\n", res[k-1].x, res[k-1].y);
+        printf("(%lf %lf)-(%lf %lf) --- (%lf %lf) - (%lf %lf)\n",
+            line[q[i]].st.x, line[q[i]].st.y, 
+            line[q[i]].ed.x, line[q[i]].ed.y,
+            line[q[i+1]].st.x, line[q[i+1]].st.y, 
+            line[q[i+1]].ed.x, line[q[i+1]].ed.y );
     }
 
     double ans = 0; //记录半平面交的面积

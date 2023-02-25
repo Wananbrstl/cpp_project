@@ -69,7 +69,8 @@ double getAngle(const Line& a) {
 bool cmp(const Line& l1, const Line& l2){
     double theta1 = getAngle(l1);
     double theta2 = getAngle(l2);
-    return dcmp(theta2, theta1) > 0;
+    if(!dcmp(theta1, theta2)) return area(l1.p1, l1.p2, l2.p2) < 0;
+    return theta1 < theta2;
 }
 /* get two line intersection point*/ 
 Point getCrossPoint(const Line& line1, const Line& line2) {
@@ -83,6 +84,17 @@ Point getCrossPoint(const Line& line1, const Line& line2) {
 int toLeftTest(Vec vec1, Vec vec2) {
     return sign(cross(vec1, vec2)*0.5);
 }
+Point get_line_intersection(Point p, Point v, Point q, Point w) //求两个点向式直线的交点
+{
+    Point u = p - q;
+    double t = cross(w, u) / cross(v, w);
+    return {p.x + v.x * t, p.y + v.y * t};
+}
+
+Point get_line_intersection(Line a, Line b) //求直线 a 和直线 b 的交点
+{
+    return get_line_intersection(a.p1, a.p2 - a.p1, b.p1, b.p2 - b.p1);
+}
 /* to left test*/
 /* test l1 whether on left of l2-l3 
  * -1 -- on right of l2-l3
@@ -95,6 +107,11 @@ int toLeftTest(const Line& l1, const Line& l2, const Line& l3) {
     Vec vec2 = pt - l1.p1;
     return toLeftTest(vec1, vec2);
 }
+bool on_right(Line &a, Line &b, Line &c) //判断 b 和 c 的交点是否在 a 的右侧
+{
+    Point o = get_line_intersection(b, c); //求 b 和 c 的交点
+    return sign(area(a.p1, a.p2, o)) <= 0;
+}
 Point pts[N], ans[N];
 int q[N];
 int cnt = 0;
@@ -102,19 +119,26 @@ int hh = 0 , tt = -1;
 
 double half_plane_intersection() {
     sort(Lines, Lines+cnt, cmp);
+    // for(int i = 0; i < cnt; ++i) {
+    //     printf("%lf %lf\n", Lines[i].p1.x, Lines[i].p1.y);
+    // }
     for(int i = 0; i < cnt; ++i) {
-        if(i && !dcmp(getAngle(Lines[i]), getAngle(Lines[i-1]))==true) continue;
-        while(hh + 1 <= tt && toLeftTest(Lines[i], Lines[q[tt-1]], Lines[q[tt]])<=0) tt--;
-        while(hh + 1 <= tt && toLeftTest(Lines[i], Lines[q[hh]], Lines[q[hh+1]])<=0) hh++;
+        if(i && !dcmp(getAngle(Lines[i]), getAngle(Lines[i-1]))) continue;
+        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[tt-1]], Lines[q[tt]])) tt--;
+        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[hh]], Lines[q[hh+1]])) hh++;
         q[ ++tt] = i;
     }
-    while(hh + 1 <= tt && toLeftTest(Lines[hh], Lines[q[tt-1]], Lines[q[tt]])<=0) tt--;
-    while(hh + 1 <= tt && toLeftTest(Lines[tt], Lines[q[hh]], Lines[q[hh+1]])<=0) hh++;
+    while(hh + 1 <= tt && on_right(Lines[hh], Lines[q[tt-1]], Lines[q[tt]])) tt--;
+    while(hh + 1 <= tt && on_right(Lines[tt], Lines[q[hh]], Lines[q[hh+1]])) hh++;
     q[ ++tt] = q[hh];
     int k = 0;
     for(int i = hh; i < tt; ++i)  {
         ans[k++] = getCrossPoint(Lines[q[i]], Lines[q[i+1]]);
-        printf("intersection point : (%lf, %lf)\n", ans[k-1].x, ans[k-1].y);
+        // printf("(%lf %lf)-(%lf %lf) --- (%lf %lf) - (%lf %lf)\n",
+        //     Lines[q[i]].p1.x, Lines[q[i]].p1.y, 
+        //     Lines[q[i]].p2.x, Lines[q[i]].p2.y,
+        //     Lines[q[i+1]].p1.x, Lines[q[i+1]].p1.y, 
+        //     Lines[q[i+1]].p2.x, Lines[q[i+1]].p2.y );
     }
     double res = 0.0;
     for(int i = 1; i + 1< k; ++i) 
@@ -133,8 +157,7 @@ int main (int argc, char *argv[])
             Lines[cnt++] = {pts[i], pts[(i+1)%m]};
         }
     }
-    printf("starting...\n");
-    cout << half_plane_intersection() << endl;
+    printf("%.10lf\n", half_plane_intersection());
     // Point a = {0, 0};
     // Point b = {8, 0};
     // Point c = {0, 4};
