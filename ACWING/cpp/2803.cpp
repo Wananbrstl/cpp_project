@@ -2,11 +2,14 @@
 #include <cstdio>
 #include <iostream>
 #include <cmath>
+#include <iomanip>
 
 #define EPS 1e-8
 #define x first
 #define y second
 #define N 600
+
+#define DEBUG 0
 
 using namespace std;
 
@@ -57,28 +60,34 @@ double area(Point a, Point b, Point c) {
 
 /* line */
 struct Line {
+    Line() {
+        p1 = {0,0};
+        p2 = {0,0};
+    }
+    Line(Point a, Point b){
+        p1 = a, p2 = b;
+    }
     Point p1, p2;
 } Lines[N];
 
 /* get line angle*/
 double getAngle(const Line& a) {
-    Vec vec = a.p2 - a.p1;
-    return atan2(vec.y, vec.x);
+    return atan2(a.p2.y-a.p1.y, a.p2.x-a.p1.x);
 }
 /* compare with angle */
 bool cmp(const Line& l1, const Line& l2){
     double theta1 = getAngle(l1);
     double theta2 = getAngle(l2);
-    if(!dcmp(theta1, theta2)) return area(l1.p1, l1.p2, l2.p2) < 0;
+    if(dcmp(theta1, theta2)==0) return area(l1.p1, l1.p2, l2.p2) < 0;
     return theta1 < theta2;
 }
 /* get two line intersection point*/ 
+Point getCrossPoint(const Point& p, const Vec& w, const Point& q, const Vec& v) {
+    double k = cross(v, p - q) / cross(w, v);
+    return p + w * k;
+}
 Point getCrossPoint(const Line& line1, const Line& line2) {
-    Vec base = line2.p2 - line2.p1;
-    double b1 = fabs(cross(base, line1.p1 - line2.p1));
-    double b2 = fabs(cross(base, line1.p2 - line2.p1));
-    double k = b1 / (b1 + b2);
-    return Point(line1.p1 + (line1.p2 - line1.p1) * k);
+    return getCrossPoint(line1.p1, line1.p2-line1.p1, line2.p1, line2.p2-line2.p1);
 }
 /* to left test 0/-1/1 */
 int toLeftTest(Vec vec1, Vec vec2) {
@@ -110,7 +119,7 @@ int toLeftTest(const Line& l1, const Line& l2, const Line& l3) {
 bool on_right(Line &a, Line &b, Line &c) //判断 b 和 c 的交点是否在 a 的右侧
 {
     Point o = get_line_intersection(b, c); //求 b 和 c 的交点
-    return sign(area(a.p1, a.p2, o)) <= 0;
+    return sign(area(a.p1, a.p2, o)/2) <= 0;
 }
 Point pts[N], ans[N];
 int q[N];
@@ -119,21 +128,64 @@ int hh = 0 , tt = -1;
 
 double half_plane_intersection() {
     sort(Lines, Lines+cnt, cmp);
-    // for(int i = 0; i < cnt; ++i) {
-    //     printf("%lf %lf\n", Lines[i].p1.x, Lines[i].p1.y);
-    // }
+#if DEBUG
     for(int i = 0; i < cnt; ++i) {
-        if(i && !dcmp(getAngle(Lines[i]), getAngle(Lines[i-1]))) continue;
-        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[tt-1]], Lines[q[tt]])) tt--;
-        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[hh]], Lines[q[hh+1]])) hh++;
-        q[ ++tt] = i;
+        cout << Lines[i].p1.x << "  " << Lines[i].p1.y << " -- " << Lines[i].p2.x << " " << Lines[i].p2.y << endl; 
     }
-    while(hh + 1 <= tt && on_right(Lines[hh], Lines[q[tt-1]], Lines[q[tt]])) tt--;
-    while(hh + 1 <= tt && on_right(Lines[tt], Lines[q[hh]], Lines[q[hh+1]])) hh++;
+#endif
+    for(int i = 0; i < cnt; ++i) {
+        if(i && 0==dcmp(getAngle(Lines[i]), getAngle(Lines[i-1]))) continue;
+        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[tt-1]], Lines[q[tt]])) {
+            tt--;
+#if DEBUG
+            printf("(%lf %lf)-(%lf %lf) pop!\n",
+                Lines[q[tt+1]].p1.x, Lines[q[tt+1]].p1.y, 
+                Lines[q[tt+1]].p2.x, Lines[q[tt+1]].p2.y);
+#endif
+        }
+        while(hh + 1 <= tt && on_right(Lines[i], Lines[q[hh]], Lines[q[hh+1]]))  {
+            hh++;
+#if DEBUG
+            printf("(%lf %lf)-(%lf %lf) pop!\n",
+                Lines[q[hh-1]].p1.x, Lines[q[hh-1]].p1.y, 
+                Lines[q[hh-1]].p2.x, Lines[q[hh-1]].p2.y);
+#endif
+        }
+        q[ ++tt] = i;
+#if DEBUG
+        printf("(%lf %lf)-(%lf %lf) add!\n",
+            Lines[q[tt]].p1.x, Lines[q[tt]].p1.y, 
+            Lines[q[tt]].p2.x, Lines[q[tt]].p2.y);
+#endif
+}
+#if DEBUG
+        printf("hh -> tt!\n");
+#endif
+
+    while(hh + 1 <= tt && on_right(Lines[q[hh]], Lines[q[tt-1]], Lines[q[tt]])) {
+         tt--;
+#if DEBUG
+            printf("(%lf %lf)-(%lf %lf) pop!\n",
+                Lines[q[tt+1]].p1.x, Lines[q[tt+1]].p1.y, 
+                Lines[q[tt+1]].p2.x, Lines[q[tt+1]].p2.y);
+#endif
+    }
+#if DEBUG
+        printf("tt -> hh!\n");
+#endif
+    while(hh + 1 <= tt && on_right(Lines[q[tt]], Lines[q[hh]], Lines[q[hh+1]]))  {
+        hh++;
+#if DEBUG
+            printf("(%lf %lf)-(%lf %lf) pop!\n",
+                Lines[q[hh-1]].p1.x, Lines[q[hh-1]].p1.y, 
+                Lines[q[hh-1]].p2.x, Lines[q[hh-1]].p2.y);
+#endif
+    }
     q[ ++tt] = q[hh];
+    // printf("%d %d\n", hh, tt);
     int k = 0;
     for(int i = hh; i < tt; ++i)  {
-        ans[k++] = getCrossPoint(Lines[q[i]], Lines[q[i+1]]);
+        ans[k++] = getCrossPoint(Lines[q[i]], Lines[q[(i+1)]]);
         // printf("(%lf %lf)-(%lf %lf) --- (%lf %lf) - (%lf %lf)\n",
         //     Lines[q[i]].p1.x, Lines[q[i]].p1.y, 
         //     Lines[q[i]].p2.x, Lines[q[i]].p2.y,
@@ -141,8 +193,10 @@ double half_plane_intersection() {
         //     Lines[q[i+1]].p2.x, Lines[q[i+1]].p2.y );
     }
     double res = 0.0;
-    for(int i = 1; i + 1< k; ++i) 
+    for(int i = 1; i + 1< k; ++i)  {
+        // printf("%lf %lf\n", ans[i].x, ans[i].y);
         res += cross(ans[0], ans[i], ans[i+1]);
+    }
     return res / 2;
 }
 int main (int argc, char *argv[])
@@ -157,17 +211,18 @@ int main (int argc, char *argv[])
             Lines[cnt++] = {pts[i], pts[(i+1)%m]};
         }
     }
+    cout << setprecision(2)
     printf("%.10lf\n", half_plane_intersection());
-    // Point a = {0, 0};
-    // Point b = {8, 0};
-    // Point c = {0, 4};
-    // Point d = {2, -4};
-    // Line l1, l2;
-    // l1.p1 = a;
-    // l1.p2 = b;
-    // l2.p1 = c;
-    // l2.p2 = d;
-    // Point p = getCrossPoint(l1, l2);
-    // cout << p.x << "\t" << p.y << endl;
+    // Point a = {0,3};
+    // Point b = {2,0};
+    // Point c = {1,3};
+    // Point d = {1,1};
+    // Point e = {3,1};
+    // Line l1(a, b), l2(c,d), l3(d, e);
+    // Point p1 = getCrossPoint(l1, l2);
+    // Point p2 = getCrossPoint(l1, l3);
+    // printf("%lf %lf\n", p1.x, p1.y);
+    // printf("%lf %lf\n", p2.x, p2.y);
+    // printf("%lf\n", area(d, p1, p2)/2);
     return 0;
 }
