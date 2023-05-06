@@ -26,12 +26,26 @@ TEST(TEST_VEC3D, test_add) {
     GameMath::Vec3d v1(1, 2, 3);
     GameMath::Vec3d v2(2, 3, 1);
     v2 += v1;
-    EXPECT_FLOAT_EQ(v1.x, 1.f);
-    EXPECT_FLOAT_EQ(v1.y, 2.f);
-    EXPECT_FLOAT_EQ(v1.z, 3.f);
+    
     EXPECT_FLOAT_EQ(v2.x, 3.f);
     EXPECT_FLOAT_EQ(v2.y, 5.f);
     EXPECT_FLOAT_EQ(v2.z, 4.f);
+
+    GameMath::Vec3d v3 = v1 + v2;
+    EXPECT_FLOAT_EQ(v3.x, 4.f);
+    EXPECT_FLOAT_EQ(v3.y, 7.f);
+    EXPECT_FLOAT_EQ(v3.z, 7.f);
+}
+
+TEST(TEST_VEC3D, test_sub) {
+    GameMath::Vec3d v1(1.f, 2.f, 3.f);
+    GameMath::Vec3d v2(2.f, 4.f, 1.f);
+    GameMath::Vec3d v3 = v1 - v2;
+
+    EXPECT_FLOAT_EQ(v3.x, -1.f);
+    EXPECT_FLOAT_EQ(v3.y, -2.f);
+    EXPECT_FLOAT_EQ(v3.z, 2.f);
+
 }
 
 int main (int argc, char *argv[])

@@ -47,7 +47,7 @@ float dot(const Vec3d& v1, const Vec3d& v2);
 // Vec3d cross(const Vec3d& v1, const Vec3d& v2);
 float getDistance(const Vec3d& a, const Vec3d& b);
 
-const Vec3d ZeroVec3d;
+extern const Vec3d ZeroVec3d;
 
 } // namespace
 #endif //
