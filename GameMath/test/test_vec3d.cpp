@@ -3,6 +3,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+const float eps = 1e-8;
 
 TEST(TEST_VEC3D, test_constructor) {
     EXPECT_EQ(9, 9);
@@ -45,7 +46,30 @@ TEST(TEST_VEC3D, test_sub) {
     EXPECT_FLOAT_EQ(v3.x, -1.f);
     EXPECT_FLOAT_EQ(v3.y, -2.f);
     EXPECT_FLOAT_EQ(v3.z, 2.f);
+}
 
+TEST(TEST_VEC3D, test_dot)
+{
+    GameMath::Vec3d v1(1.f, 0.f, 0.f);
+    GameMath::Vec3d v2(0.f, 1.f, 0.f);
+    GameMath::Vec3d v3(2.f, 1.f, 9.f);
+    GameMath::Vec3d v4(2.f, 4.f, 4.f);
+    EXPECT_NEAR(GameMath::dot(v1, v2), 0.f, eps);
+    EXPECT_NEAR(GameMath::dot(v2, v3), 1.f, eps);
+    EXPECT_NEAR(GameMath::dot(v3, v4), 44.f, eps);
+    EXPECT_NEAR(GameMath::dot(v4, v1), 2.f, eps);
+}
+
+TEST(TEST_VEC3D, test_distance)
+{
+    GameMath::Vec3d v1(1.f, 0.f, 0.f);
+    GameMath::Vec3d v2(0.f, 1.f, 0.f);
+    GameMath::Vec3d v3(2.f, 1.f, 9.f);
+    GameMath::Vec3d v4(2.f, 4.f, 4.f);
+    EXPECT_NEAR(GameMath::getDistance(v1, v2), 0.f, eps);
+    EXPECT_NEAR(GameMath::getDistance(v2, v3), 1.f, eps);
+    EXPECT_NEAR(GameMath::getDistance(v3, v4), sqrt(44.f), eps);
+    EXPECT_NEAR(GameMath::getDistance(v4, v1), sqrt(2.f), eps);
 }
 
 int main (int argc, char *argv[])
