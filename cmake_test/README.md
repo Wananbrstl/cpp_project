@@ -89,5 +89,11 @@ INTERFACE就是自己不使用当前的INCLUDE_DIRECTORIES ，但是把当前的
 
 # reference 
 [知乎](https://zhuanlan.zhihu.com/p/493493849)
-[b站视频](https://www.bilibili.com/video/BV1MP4y127ha/?vd_source=0e276d55dbd9a04fc2b56c3d534b885d)
-(博客)[https://subingwen.cn/cmake/CMake-primer/]
+
+[b站视频1](https://www.bilibili.com/video/BV1MP4y127ha/?vd_source=0e276d55dbd9a04fc2b56c3d534b885d)
+
+[b站视频2](https://www.bilibili.com/video/BV14h41187FZ/?spm_id_from=333.337.search-card.all.click&vd_source=0e276d55dbd9a04fc2b56c3d534b885d)
+
+[博客](https://subingwen.cn/cmake/CMake-primer/)
+
+[githubt reference](https://github.com/richardchien/modern-cmake-by-example#%E7%9B%B4%E6%92%AD%E6%97%B6%E7%9A%84-qa)
