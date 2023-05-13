@@ -62,8 +62,32 @@ INTERFACE就是自己不使用当前的INCLUDE_DIRECTORIES ，但是把当前的
 - `target_compile_opt`
 - `target_link_opt`
 - `target_compile_defines`
-- `set()`
+- `set(variable xxxx  xxx)`
+- `list(<APPEND|LENGTH|REMOVE_ITEM> <list> <elements....>)`
+    - e.g: `list(APPEND list1 ${l1} ${l2} ${l3})`
+- `file(GLOB <variable> "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)` to find any file
+- `aux_source_directories(<dir> <variable>)`
+- `add_defines(-Ddefine)` to add define before the execute
+- `message(<level> message)`
+    - (无) ：重要消息
+    - STATUS ：非重要消息
+    - `WARNING`：CMake警告，会继续执行
+    - `AUTHOR_WARNING`：CMake警告 (dev), 会继续执行
+    - `SEND_ERROR`：CMake错误，继续执行，但是会跳过生成的步骤
+    - `FATAL_ERROR`：CMake错误，终止所有处理过程
+- some predefine variabel
+    - `PROJECT_SOURCE_DIR`：CMake根目录
+    - `PROJECT_BINARY_DIR`：执行cmake命令的目录
+    - `CMAKE_CURRENT_DIR`：当前CMake文件所在的目录
+    - `CMAKE_CURRENT_BINARY_DIR`：target编译目录
+    - `EXCUTABLE_OUTPUT_PATH`：重新定义目标二进制文件存放的位置
+    - `LIBRARY_OUTPUT_PATH`：重新定义目标链接库存在目录
+    - `PROJECT_NAME`：项目名称
+    - `CMAKE_BINARY_DIR`：项目实际构件路径，如果在`build`目录中进行构件，那么得到的就是这个目录
+
+
 
 # reference 
-[https://zhuanlan.zhihu.com/p/493493849]
-(b站视频)[https://www.bilibili.com/video/BV1MP4y127ha/?vd_source=0e276d55dbd9a04fc2b56c3d534b885d]
+[知乎](https://zhuanlan.zhihu.com/p/493493849)
+[b站视频](https://www.bilibili.com/video/BV1MP4y127ha/?vd_source=0e276d55dbd9a04fc2b56c3d534b885d)
+(博客)[https://subingwen.cn/cmake/CMake-primer/]
